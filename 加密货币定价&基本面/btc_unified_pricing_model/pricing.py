@@ -48,7 +48,8 @@ class UnifiedBTCPricingModelV12:
         if components["transaction_cost_pass"]:
             cost = -df["z_validated_avg_fee_usd_7d"]
             if components.get("transaction_benefit_pass") and "z_validated_transfer_volume_usd_7d" in df.columns:
-                cost = 0.75 * cost + 0.25 * df["z_validated_transfer_volume_usd_7d"]
+                cost_combined = 0.75 * cost + 0.25 * df["z_validated_transfer_volume_usd_7d"]
+                cost = cost_combined.fillna(cost)
             scores.append(cost)
             weights.append(float(self.cfg.biais_weights.get("transaction_cost", 0.20)))
 
@@ -67,14 +68,14 @@ class UnifiedBTCPricingModelV12:
         if not scores:
             return pd.Series(np.nan, index=df.index)
 
-        # 权重重新归一，防止某个子模块未通过后权重总和偏小。
-        weight_sum = sum(weights)
-        if weight_sum <= 0:
-            return pd.Series(np.nan, index=df.index)
-        out = pd.Series(0.0, index=df.index)
+        weighted_sum = pd.Series(0.0, index=df.index)
+        weight_sum_series = pd.Series(0.0, index=df.index)
         for s, w in zip(scores, weights):
-            out = out + s * (w / weight_sum)
-        return out
+            mask = s.notna()
+            weighted_sum.loc[mask] += s.loc[mask] * w
+            weight_sum_series.loc[mask] += w
+        
+        return weighted_sum / weight_sum_series.replace(0, np.nan)
 
     def _discount_from_score(self, score: Optional[float], module_pass: bool, thresholds) -> Optional[float]:
         if not module_pass or score is None or pd.isna(score):
@@ -117,13 +118,15 @@ class UnifiedBTCPricingModelV12:
 
         if not scores:
             return pd.Series(np.nan, index=df.index)
-        weight_sum = sum(weights)
-        if weight_sum <= 0:
-            return pd.Series(np.nan, index=df.index)
-        out = pd.Series(0.0, index=df.index)
+
+        weighted_sum = pd.Series(0.0, index=df.index)
+        weight_sum_series = pd.Series(0.0, index=df.index)
         for s, w in zip(scores, weights):
-            out = out + s * (w / weight_sum)
-        return out
+            mask = s.notna()
+            weighted_sum.loc[mask] += s.loc[mask] * w
+            weight_sum_series.loc[mask] += w
+        
+        return weighted_sum / weight_sum_series.replace(0, np.nan)
 
     def liu_discount_from_score(self, score: Optional[float], module_pass: bool) -> Optional[float]:
         """Liu score 转折价；模块未通过则返回 None，不参与模型。"""
