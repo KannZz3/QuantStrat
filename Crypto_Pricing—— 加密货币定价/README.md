@@ -1,4 +1,4 @@
-# 比特币多维动态定价与级联估值框架
+# 比特币多维动态定价与级联估值框架 (QuantStrat)
 
 本项目提供了一个基于学术理论的**比特币（BTC）统一多维动态下沿估值模型**。模型融合了链上核心基本面锚定与市场行为折价机制，旨在极端行情或高波动市场下，为比特币计算出具有坚实基本面支撑、且经过市场情绪与交易摩擦调整的**价格下沿支撑区间**。
 
@@ -17,22 +17,49 @@ $$\text{Strict Lower Point } (P_{\text{strict}}) = V_{\text{BDK}} \times D_{\tex
 
 $$\text{Valuation Range} = P_{\text{strict}} \times (1 \pm W)$$
 
+### 1.1 系统工作流与数据级联
 ```mermaid
 graph TD
-    %% 数据层
-    A[多源数据采集 fetchers.py] --> B[学术交叉验证 validator.py]
-    
-    %% 计算层
-    B -->|Strict-tier / Research-tier| C[特征工程与定价引擎 pricing.py]
-    
-    %% 引擎细分
-    C --> C1[BDK 链上基本面锚 V_BDK]
-    C --> C2[Biais 均衡交易折价 D_Biais]
-    C --> C3[Liu 动量注意力折价 D_Liu]
-    
-    %% 输出层
-    C1 & C2 & C3 --> D[状态评估与区间宽度调整]
-    D --> E[4大压力情景下沿估值输出]
+    %% 数据采集
+    subgraph Fetcher ["多源数据采集层 (fetchers.py)"]
+        A1["价格源:<br/>CoinGecko / Binance / Kraken"]
+        A2["链上源:<br/>Blockchain / CoinMetrics / Blockchair"]
+        A3["情绪源:<br/>Wikipedia / GDELT / ETF Flow"]
+    end
+
+    %% 学术验证
+    subgraph Validator ["学术交叉验证层 (validator.py)"]
+        B1["多源数据对齐与清洗"]
+        B2["偏离度与相关性校验<br/>(Gap & Correlation)"]
+        B3{"数据验证<br/>是否通过?"}
+        B4["输出 Strict-tier 数据"]
+        B5["降级为 Research-tier 数据"]
+    end
+
+    %% 核心计算
+    subgraph Engine ["核心特征与定价引擎 (processor.py & pricing.py)"]
+        C1["特征转换:<br/>收益率 / 回撤 / Z-Score"]
+        C2["BDK 链上基本面锚 V_BDK<br/>(样本内弹性 OLS 重校准)"]
+        C3["Biais 均衡交易折价 D_Biais<br/>(下行风险惩罚化)"]
+        C4["Liu 动量与注意力折价 D_Liu<br/>(代理变量权重折减)"]
+    end
+
+    %% 级联输出
+    subgraph Output ["评估与输出层 (io_outputs.py)"]
+        D1["自适应模型降级判断<br/>(Model Downgrade)"]
+        D2["区间宽度自适应调整<br/>(含波动率下限)"]
+        D3["4大压力情景估值输出"]
+        D4["JSON & CSV 报告生成"]
+    end
+
+    %% 连接线
+    A1 & A2 & A3 --> B1
+    B1 --> B2 --> B3
+    B3 -- Yes --> B4 --> C1
+    B3 -- No --> B5 --> C1
+    C1 --> C2 & C3 & C4
+    C2 & C3 & C4 --> D1
+    D1 --> D2 --> D3 --> D4
 ```
 
 ---
