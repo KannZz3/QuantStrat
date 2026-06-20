@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -25,6 +25,44 @@ class UnifiedBTCPricingModelV12:
             * (hr_stress / hr_current) ** self.cfg.beta_hashrate
             * (aa_stress / aa_current) ** self.cfg.beta_network
         )
+
+    def bdk_loglog_fit(self, df: pd.DataFrame, latest_idx: int) -> Dict[str, float]:
+        """
+        BDK log-log fair value proxy.
+
+        使用论文弹性 beta_hashrate / beta_network，并在当前验证样本中估计 alpha：
+            log(P) = alpha + beta_hr log(HR) + beta_net log(AA) + error
+
+        这样保留当前 stress anchor，同时给出不直接按当前价格缩放的基本面拟合价值。
+        """
+        cols = ["validated_btc_price", "validated_hashrate_7d", "validated_active_addresses_7d"]
+        work = df.loc[:latest_idx, cols].replace([np.inf, -np.inf], np.nan).dropna().copy()
+        work = work[(work[cols] > 0).all(axis=1)]
+        min_obs = max(30, int(getattr(self.cfg, "research_min_observations", 30)))
+        if len(work) < min_obs:
+            return {"alpha": np.nan, "fair_value_current": np.nan, "fit_obs": int(len(work))}
+        residual = (
+            np.log(work["validated_btc_price"])
+            - self.cfg.beta_hashrate * np.log(work["validated_hashrate_7d"])
+            - self.cfg.beta_network * np.log(work["validated_active_addresses_7d"])
+        )
+        alpha = float(residual.median())
+        latest = df.loc[latest_idx]
+        fair_value = float(np.exp(
+            alpha
+            + self.cfg.beta_hashrate * np.log(float(latest["validated_hashrate_7d"]))
+            + self.cfg.beta_network * np.log(float(latest["validated_active_addresses_7d"]))
+        ))
+        return {"alpha": alpha, "fair_value_current": fair_value, "fit_obs": int(len(work))}
+
+    def bdk_loglog_value(self, alpha: float, hr_value: float, aa_value: float) -> float:
+        if pd.isna(alpha) or any(pd.isna(x) or x <= 0 for x in [hr_value, aa_value]):
+            return np.nan
+        return float(np.exp(
+            alpha
+            + self.cfg.beta_hashrate * np.log(float(hr_value))
+            + self.cfg.beta_network * np.log(float(aa_value))
+        ))
 
     def compute_biais_score(self, df: pd.DataFrame, validation_report: dict) -> pd.Series:
         """
@@ -77,7 +115,7 @@ class UnifiedBTCPricingModelV12:
         
         return weighted_sum / weight_sum_series.replace(0, np.nan)
 
-    def _discount_from_score(self, score: Optional[float], module_pass: bool, thresholds) -> Optional[float]:
+    def _threshold_discount_from_score(self, score: Optional[float], module_pass: bool, thresholds) -> Optional[float]:
         if not module_pass or score is None or pd.isna(score):
             return None
         for min_score, discount in thresholds:
@@ -85,9 +123,27 @@ class UnifiedBTCPricingModelV12:
                 return float(discount)
         return None
 
+    def _continuous_downside_discount(self, score: Optional[float], module_pass: bool, lam: float, floor: float) -> Optional[float]:
+        if not module_pass or score is None or pd.isna(score):
+            return None
+        downside_score = min(float(score), 0.0)
+        return float(max(float(floor), np.exp(float(lam) * downside_score)))
+
+    def _discount_from_score(self, score: Optional[float], module_pass: bool, thresholds, lam: float, floor: float) -> Optional[float]:
+        method = str(getattr(self.cfg, "discount_method", "threshold")).lower()
+        if method == "exponential_downside":
+            return self._continuous_downside_discount(score, module_pass, lam, floor)
+        return self._threshold_discount_from_score(score, module_pass, thresholds)
+
     def biais_discount_from_score(self, score: Optional[float], module_pass: bool) -> Optional[float]:
         """Biais score 转折价；模块未通过则返回 None，不参与模型。"""
-        return self._discount_from_score(score, module_pass, self.cfg.biais_discount_thresholds)
+        return self._discount_from_score(
+            score,
+            module_pass,
+            self.cfg.biais_discount_thresholds,
+            self.cfg.biais_discount_lambda,
+            self.cfg.biais_discount_floor,
+        )
 
     def compute_liu_score(self, df: pd.DataFrame, validation_report: dict) -> pd.Series:
         """
@@ -105,11 +161,17 @@ class UnifiedBTCPricingModelV12:
             weights.append(float(self.cfg.liu_weights.get("momentum", 0.40)))
 
         if components["ordinary_attention_pass"]:
-            scores.append(df["validated_attention_z"])
+            attention = df.get("strict_validated_attention_z", pd.Series(np.nan, index=df.index)).combine_first(
+                df.get("research_validated_attention_z", pd.Series(np.nan, index=df.index))
+            )
+            scores.append(attention)
             weights.append(float(self.cfg.liu_weights.get("ordinary_attention", 0.25)))
 
         if components["negative_attention_pass"]:
-            scores.append(-df["validated_negative_attention_z"])
+            negative_attention = df.get("strict_validated_negative_attention_z", pd.Series(np.nan, index=df.index)).combine_first(
+                df.get("research_validated_negative_attention_z", pd.Series(np.nan, index=df.index))
+            )
+            scores.append(-negative_attention)
             weights.append(float(self.cfg.liu_weights.get("negative_attention", 0.20)))
 
         if components["activity_growth_pass"]:
@@ -130,7 +192,13 @@ class UnifiedBTCPricingModelV12:
 
     def liu_discount_from_score(self, score: Optional[float], module_pass: bool) -> Optional[float]:
         """Liu score 转折价；模块未通过则返回 None，不参与模型。"""
-        return self._discount_from_score(score, module_pass, self.cfg.liu_discount_thresholds)
+        return self._discount_from_score(
+            score,
+            module_pass,
+            self.cfg.liu_discount_thresholds,
+            self.cfg.liu_discount_lambda,
+            self.cfg.liu_discount_floor,
+        )
 
     @staticmethod
     def _confidence_level(model_status: str, data_quality: Optional[float], min_core_obs: int) -> dict:
@@ -138,7 +206,13 @@ class UnifiedBTCPricingModelV12:
         if model_status == "Full Model" and quality >= 0.85 and min_core_obs >= 90:
             level = "high"
             desc = "完整模块通过，核心样本充足。"
-        elif model_status in ["Core Model", "Reduced Model"] and quality >= 0.70 and min_core_obs >= 60:
+        elif model_status in [
+            "BDK + Biais Core + Liu Attention Enhanced",
+            "BDK + Biais Core + Liu Momentum",
+            "BDK + Biais Core",
+            "BDK + Liu Momentum",
+            "BDK + Liu Attention Enhanced",
+        ] and quality >= 0.70 and min_core_obs >= 60:
             level = "medium"
             desc = "核心锚有效，但部分扩展模块缺失或样本有限。"
         elif model_status == "BDK Only" and quality >= 0.55:
@@ -153,6 +227,27 @@ class UnifiedBTCPricingModelV12:
             "validated_data_quality_score": quality,
             "min_core_validated_obs": int(min_core_obs),
         }
+
+    @staticmethod
+    def _semantic_model_status(included_modules: List[str], module: dict) -> Tuple[str, float]:
+        has_biais = "Biais" in included_modules
+        has_liu = "Liu-Tsyvinski" in included_modules
+        liu_attention = bool(module.get("liu_attention_enhanced", False))
+        liu_momentum = bool(module.get("liu_momentum_only", False))
+
+        if has_biais and has_liu and module.get("biais_full_pass") and module.get("liu_full_pass"):
+            return "Full Model", 0.05
+        if has_biais and has_liu and liu_attention:
+            return "BDK + Biais Core + Liu Attention Enhanced", 0.10
+        if has_biais and has_liu and (liu_momentum or module.get("liu_components", {}).get("momentum_pass")):
+            return "BDK + Biais Core + Liu Momentum", 0.12
+        if has_biais:
+            return "BDK + Biais Core", 0.15
+        if has_liu and liu_attention:
+            return "BDK + Liu Attention Enhanced", 0.15
+        if has_liu:
+            return "BDK + Liu Momentum", 0.15
+        return "BDK Only", 0.18
 
     @staticmethod
     def _make_downgrade_table(validation_report: dict, excluded_modules: List[dict]) -> List[dict]:
@@ -181,6 +276,46 @@ class UnifiedBTCPricingModelV12:
                     "latest_date": rec.get("latest_date"),
                 })
         return rows
+
+    @staticmethod
+    def _module_confidence(included_modules: List[str], module: dict) -> Dict[str, dict]:
+        out: Dict[str, dict] = {
+            "BDK": {
+                "level": "high" if "BDK" in included_modules else "none",
+                "tier": "strict",
+                "reason_cn": "价格、算力、活跃地址核心锚要求严格交叉验证。",
+            }
+        }
+        if "Biais" in included_modules:
+            out["Biais"] = {
+                "level": "high" if module.get("biais_full_pass") else "medium",
+                "tier": "strict_core",
+                "reason_cn": "Biais Core 至少包含交易便利收益与崩盘风险；ETF 仅为市场准入扩展项。",
+            }
+        else:
+            out["Biais"] = {"level": "none", "tier": "excluded", "reason_cn": "Biais Core 未进入本轮严格估值。"}
+
+        liu_components = module.get("liu_components", {})
+        if "Liu-Tsyvinski" in included_modules:
+            if module.get("liu_full_pass"):
+                level = "high"
+                tier = "strict_attention"
+            elif module.get("liu_attention_enhanced"):
+                level = "medium"
+                tier = "attention_enhanced"
+            else:
+                level = "low"
+                tier = "momentum_only"
+            out["Liu-Tsyvinski"] = {
+                "level": level,
+                "tier": tier,
+                "ordinary_attention_tier": liu_components.get("ordinary_attention_tier"),
+                "negative_attention_tier": liu_components.get("negative_attention_tier"),
+                "reason_cn": "Liu 层按动量、普通注意力、负面注意力的可用证据分层入模。",
+            }
+        else:
+            out["Liu-Tsyvinski"] = {"level": "none", "tier": "excluded", "reason_cn": "Liu 层未进入本轮严格估值。"}
+        return out
 
     def _discount_sensitivity_rows(
         self,
@@ -396,20 +531,8 @@ class UnifiedBTCPricingModelV12:
             combined_discount *= liu_discount
             included_modules.append("Liu-Tsyvinski")
 
-        # model_status 和区间宽度根据实际 included_modules 重算，避免状态虚高。
-        if included_modules == ["BDK", "Biais", "Liu-Tsyvinski"]:
-            if module.get("biais_full_pass") and module.get("liu_full_pass"):
-                actual_model_status = "Full Model"
-                band_width = 0.05
-            else:
-                actual_model_status = "Core Model"
-                band_width = 0.10
-        elif included_modules in (["BDK", "Biais"], ["BDK", "Liu-Tsyvinski"]):
-            actual_model_status = "Reduced Model"
-            band_width = 0.15
-        else:
-            actual_model_status = "BDK Only"
-            band_width = 0.18
+        # model_status 和区间宽度根据论文语义重算，避免 Reduced/Core 这类含义不清的状态。
+        actual_model_status, band_width = self._semantic_model_status(included_modules, module)
 
         # validated 样本数越少，区间越宽。
         counts = validation_report.get("validated_observation_counts", {})
@@ -433,6 +556,7 @@ class UnifiedBTCPricingModelV12:
         p_current = float(latest["validated_btc_price"])
         hr_current = float(latest["validated_hashrate_7d"])
         aa_current = float(latest["validated_active_addresses_7d"])
+        bdk_loglog = self.bdk_loglog_fit(out, latest_idx)
         # 只使用通过交叉验证的重叠窗口样本计算分位数。
         hr_series = out.loc[:latest_idx, "validated_hashrate_7d"].dropna()
         aa_series = out.loc[:latest_idx, "validated_active_addresses_7d"].dropna()
@@ -467,6 +591,7 @@ class UnifiedBTCPricingModelV12:
         scenario_rows = []
         for name, s in scenarios.items():
             bdk = self.bdk_anchor(p_current, hr_current, aa_current, s["hr_stress"], s["aa_stress"])
+            bdk_loglog_stress = self.bdk_loglog_value(bdk_loglog.get("alpha"), s["hr_stress"], s["aa_stress"])
             strict_point = bdk * combined_discount if not pd.isna(bdk) else np.nan
             lower = strict_point * (1 - band_width) if not pd.isna(strict_point) else np.nan
             upper = strict_point * (1 + band_width) if not pd.isna(strict_point) else np.nan
@@ -475,6 +600,11 @@ class UnifiedBTCPricingModelV12:
                 "desc_cn": s["desc_cn"],
                 "hashrate_stress_ehs": s["hr_stress"],
                 "active_addresses_stress": s["aa_stress"],
+                "bdk_loglog_alpha": bdk_loglog.get("alpha"),
+                "bdk_loglog_fit_obs": bdk_loglog.get("fit_obs"),
+                "bdk_loglog_fair_value_current": bdk_loglog.get("fair_value_current"),
+                "bdk_loglog_fair_value_stress": bdk_loglog_stress,
+                "bdk_stress_anchor_price": bdk,
                 "bdk_anchor_price": bdk,
                 "biais_score": float(latest_biais_score) if pd.notna(latest_biais_score) else np.nan,
                 "biais_discount": biais_discount,
@@ -517,12 +647,20 @@ class UnifiedBTCPricingModelV12:
             "btc_price_current": p_current,
             "hashrate_current_ehs_7d_validated": hr_current,
             "active_addresses_current_7d_validated": aa_current,
+            "bdk_loglog_alpha": bdk_loglog.get("alpha"),
+            "bdk_loglog_fit_obs": bdk_loglog.get("fit_obs"),
+            "bdk_loglog_fair_value_current": bdk_loglog.get("fair_value_current"),
             "biais_score_latest": float(latest_biais_score) if pd.notna(latest_biais_score) else None,
             "liu_score_latest": float(latest_liu_score) if pd.notna(latest_liu_score) else None,
             "biais_discount_latest": biais_discount,
             "liu_discount_latest": liu_discount,
             "combined_discount_latest": combined_discount,
             "discount_model_config": {
+                "discount_method": self.cfg.discount_method,
+                "biais_discount_lambda": self.cfg.biais_discount_lambda,
+                "liu_discount_lambda": self.cfg.liu_discount_lambda,
+                "biais_discount_floor": self.cfg.biais_discount_floor,
+                "liu_discount_floor": self.cfg.liu_discount_floor,
                 "biais_weights": dict(self.cfg.biais_weights),
                 "liu_weights": dict(self.cfg.liu_weights),
                 "biais_discount_thresholds": [list(x) for x in self.cfg.biais_discount_thresholds],
@@ -531,6 +669,7 @@ class UnifiedBTCPricingModelV12:
             },
             "discount_sensitivity_core_lower_bound": sensitivity_rows,
             "three_paper_framework_rows": scenario_rows,
+            "module_confidence": self._module_confidence(included_modules, module),
             "confidence_level": self._confidence_level(
                 actual_model_status,
                 validation_report.get("validated_data_quality_score"),

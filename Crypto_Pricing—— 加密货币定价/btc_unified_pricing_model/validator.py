@@ -887,7 +887,26 @@ class CrossValidator:
         # ----------------------------------------------------
         # 4.8 Attention：Google + Wikipedia 双源一致才入 Liu。
         # ----------------------------------------------------
-        att_res, out["validated_attention_z"], neg_res, out["validated_negative_attention_z"] = self.validate_attention(out)
+        att_res, attention_series, neg_res, negative_attention_series = self.validate_attention(out)
+        out["strict_validated_attention_z"] = (
+            attention_series if att_res.get("strict_pass", False)
+            else pd.Series(np.nan, index=out.index, dtype="float64")
+        )
+        out["research_validated_attention_z"] = (
+            attention_series if att_res.get("pass", False) and not att_res.get("strict_pass", False)
+            else pd.Series(np.nan, index=out.index, dtype="float64")
+        )
+        out["validated_attention_z"] = out["strict_validated_attention_z"].combine_first(out["research_validated_attention_z"])
+
+        out["strict_validated_negative_attention_z"] = (
+            negative_attention_series if neg_res.get("strict_pass", False)
+            else pd.Series(np.nan, index=out.index, dtype="float64")
+        )
+        out["research_validated_negative_attention_z"] = (
+            negative_attention_series if neg_res.get("pass", False) and not neg_res.get("strict_pass", False)
+            else pd.Series(np.nan, index=out.index, dtype="float64")
+        )
+        out["validated_negative_attention_z"] = out["strict_validated_negative_attention_z"].combine_first(out["research_validated_negative_attention_z"])
         report["variables"]["ordinary_attention"] = att_res
         report["variables"]["negative_attention"] = neg_res
         if not att_res["pass"]:
@@ -976,10 +995,16 @@ class CrossValidator:
             model_status = "No Strict Valuation"
         elif biais_full_pass and liu_full_pass:
             model_status = "Full Model"
+        elif biais_module_pass and liu_attention_enhanced:
+            model_status = "BDK + Biais Core + Liu Attention Enhanced"
         elif biais_module_pass and liu_module_pass:
-            model_status = "Core Model"
-        elif biais_module_pass or liu_module_pass:
-            model_status = "Reduced Model"
+            model_status = "BDK + Biais Core + Liu Momentum"
+        elif biais_module_pass:
+            model_status = "BDK + Biais Core"
+        elif liu_attention_enhanced:
+            model_status = "BDK + Liu Attention Enhanced"
+        elif liu_module_pass:
+            model_status = "BDK + Liu Momentum"
         else:
             model_status = "BDK Only"
 
@@ -996,6 +1021,10 @@ class CrossValidator:
             "validated_etf_flow_usd_7d",
             "validated_attention_z",
             "validated_negative_attention_z",
+            "strict_validated_attention_z",
+            "research_validated_attention_z",
+            "strict_validated_negative_attention_z",
+            "research_validated_negative_attention_z",
             "validated_ret_7d",
             "validated_activity_growth",
         ]

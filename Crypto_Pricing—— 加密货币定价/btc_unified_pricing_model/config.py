@@ -88,6 +88,11 @@ class ModelConfig:
     enable_research_fallbacks: bool = True
     research_min_observations: int = 30
     allow_liu_momentum_only: bool = True
+    discount_method: str = "exponential_downside"
+    biais_discount_lambda: float = 0.17
+    liu_discount_lambda: float = 0.10
+    biais_discount_floor: float = 0.75
+    liu_discount_floor: float = 0.82
     biais_weights: Dict[str, float] = field(default_factory=lambda: {
         "transaction_benefit": 0.40,
         "transaction_cost": 0.20,

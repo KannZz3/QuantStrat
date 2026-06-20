@@ -136,11 +136,25 @@ class PricingTests(unittest.TestCase):
             "data_source_health": {"records": []},
         }
         _, summary = model.price(df, validation_report)
-        self.assertEqual(summary["strict_model_status"], "Reduced Model")
+        self.assertEqual(summary["strict_model_status"], "BDK + Liu Momentum")
         self.assertEqual(summary["included_modules"], ["BDK", "Liu-Tsyvinski"])
         self.assertIsNotNone(summary["liu_discount_latest"])
         self.assertLess(summary["combined_discount_latest"], 1.0)
+        self.assertIn("bdk_loglog_fair_value_current", summary)
+        self.assertGreater(summary["bdk_loglog_fair_value_current"], 0)
+        self.assertEqual(summary["discount_model_config"]["discount_method"], "exponential_downside")
         self.assertEqual(len(summary["three_paper_framework_rows"]), 4)
+
+    def test_exponential_downside_discount_is_continuous(self) -> None:
+        cfg = ModelConfig()
+        model = UnifiedBTCPricingModelV12(cfg)
+        self.assertAlmostEqual(model.biais_discount_from_score(0.5, True), 1.0)
+        mild = model.biais_discount_from_score(-0.5, True)
+        severe = model.biais_discount_from_score(-1.0, True)
+        self.assertIsNotNone(mild)
+        self.assertIsNotNone(severe)
+        self.assertGreater(mild, severe)
+        self.assertGreaterEqual(severe, cfg.biais_discount_floor)
 
 
 if __name__ == "__main__":
