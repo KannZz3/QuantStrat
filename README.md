@@ -4,7 +4,7 @@
 本项目是 **QuantStrat** 与**伊利诺伊大学金融工程硕士项目（UIUC MSFE）** 2026年夏季的量化金融研究合作项目。项目主要针对**中国商品期货市场主力合约**，采用学术规范与研究方法，以文献为锚进行复现与拓展检验，构建了一套包含**商品期货行为金融异象、高阶异方差频域检验与动态风险管理**的量化研究参考系统。
 This project is a collaborative quantitative finance research initiative between **QuantStrat** and the **Master of Science in Financial Engineering (MSFE)** program at the **University of Illinois Urbana-Champaign (UIUC)** for Summer 2026. Focusing on active contracts in the Chinese commodity futures market, the project adopts rigorous academic methodologies to replicate and extend literature-anchored hypotheses. It constructs a quantitative research system encompassing commodity futures behavioral anomalies, frequency-domain diagnostics for high-order heteroscedasticity, and dynamic risk management.
 
-目前项目已基本完成核心研究模块 of 开发与实证分析，并规划了未来深入研究的两个方向。
+目前项目已基本完成核心研究模块的开发与实证分析，并规划了未来深入研究的两个方向。
 Currently, the core research modules and empirical analyses are complete, and two future research directions are planned.
 
 ---
