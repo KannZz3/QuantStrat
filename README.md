@@ -130,9 +130,9 @@ Currently, three core research modules and empirical analyses are complete, and 
 
 ## 4. Planned Research Modules and Future Directions / 四、 规划中研究模块与后续方向
 
-The project will further explore the following two quantitative finance topics, progressively completing the replication and extension of relevant academic literature:
+The project will further explore the following three quantitative finance topics, progressively completing the replication and extension of relevant academic literature:
 
-本项目后续将进一步探索以下两个量化金融课题，并逐步完成相关学术文献的复现与拓展检验：
+本项目后续将进一步探索以下三个量化金融课题，并逐步完成相关学术文献的复现与拓展检验：
 
 ### 1. Momentum, Reversal, and Trend-Following / 动量 / 反转 / 趋势跟踪
 *   **Research Topics / 研究主题**：
@@ -163,6 +163,19 @@ The project will further explore the following two quantitative finance topics, 
     *   *Gu, Kelly, and Xiu (2020)* — Empirical Asset Pricing via Machine Learning
     *   *Shen, Jiang, and Zhang (2012)* — Stock Market Forecasting Using Machine Learning Algorithms
     *   *Tran, Pham-Hi, and Bui (2023)* — Optimizing Automated Trading Systems with Deep Reinforcement Learning
+
+### 3. Market Microstructure and High-Frequency Trading / 市场微观结构 / 高频交易 / 算法交易
+*   **Research Topics / 研究主题**：
+    Volatility feedback effects in high-frequency data, dynamic execution of micro-order flows, algorithmic trading optimization under Pro Rata matching mechanisms, and transaction cost minimization control.
+
+    高频数据下的波动率反馈效应、微观订单流动态执行、Pro Rata 匹配机制下的算法交易优化以及交易成本最小化控制。
+*   **Core Literature / 核心文献**：
+    *   *Bollerslev, Litvinova, and Tauchen (2006)* — Leverage and Volatility Feedback Effects in High-Frequency Data
+    *   *Funie, Salmon, and Luk (2014)* — A Hybrid Genetic-Programming Swarm-Optimisation Approach for Examining the Nature and Stability of High Frequency Trading Strategies
+    *   *Guilbaud and Pham (2015)* — Optimal High-Frequency Trading in a Pro Rata Microstructure with Predictive Information
+    *   *Kearns and Nevmyvaka (2013)* — Machine Learning for Market Microstructure and High Frequency Trading
+    *   *Labadie, Lehalle, et al. (2010)* — Optimal Algorithmic Trading and Market Microstructure
+    *   *Lehalle (2013)* — Market Microstructure Knowledge Needed for Controlling an Intra-Day Trading Process
 
 ---
 
