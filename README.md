@@ -6,7 +6,7 @@ This project is a collaborative quantitative finance research initiative between
 
 Currently, three core research modules and empirical analyses are complete, and two future research directions are planned.
 
-目前项目已基本完成3个核心研究模块的开发与实证分析，并规划了未来深入研究的两个方向。
+目前项目已基本完成3个核心研究模块的开发与实证分析，并规划了未来深入研究的三个方向。
 
 ---
 
