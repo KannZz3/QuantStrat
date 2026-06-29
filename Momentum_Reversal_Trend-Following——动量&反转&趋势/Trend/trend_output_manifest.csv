@@ -1,0 +1,8 @@
+file,scope,question,description
+trend_core_current_summary.csv,CURRENT,ALL,最终当前主表：趋势存在、持续周期、结束风险、最佳趋势模型汇总
+trend_q1_existence_current.csv,CURRENT,Q1,当前是否存在/确立趋势：方向、强度、拟合度、趋势年龄
+trend_q2_duration_current.csv,CURRENT,Q2,当前趋势还能持续多久：剩余寿命、未来N日结束概率、历史同方向duration摘要
+trend_q3_end_current.csv,CURRENT,Q3,当前趋势是否结束/是否有结束风险：确认结束、过度延伸、结束触发项
+trend_hist_q1_existence_model.csv,FULL_HISTORY,Q1,全历史趋势存在频率、方向分布、最佳趋势模型有效性
+trend_hist_q2_duration_distribution.csv,FULL_HISTORY,Q2,全历史趋势episode持续时间分布：均值、中位数、分位数、样本数
+trend_hist_q3_end_risk_survival.csv,FULL_HISTORY,Q3,全历史趋势结束风险：按方向、risk状态、horizon统计未来结束概率
