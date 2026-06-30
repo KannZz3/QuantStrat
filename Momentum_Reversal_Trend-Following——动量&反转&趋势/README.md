@@ -250,19 +250,20 @@ $$
 | EB 苯乙烯 | 2026-06-29, close=7249 | 已确立 DOWN 且有结束风险, age=10d, T=-10.87, Fit=0.94 | h=10,K=2, CONFIRMED | median=3d, mean=5.6d, n=15, LOW | risk=Y, confirmed=N, 5d=66.7%,10d=80.0%,20d=100.0% |
 | FG 玻璃 | 2026-06-29, close=978 | 已确立 DOWN, age=3d, T=-3.90, Fit=0.66 | h=10,K=20, CANDIDATE | median=4d, mean=6.1d, n=77, HIGH | risk=N, confirmed=N, 5d=59.7%,10d=81.8%,20d=96.1% |
 | LH 生猪 | 2026-06-29, close=12415 | 已确立 UP, age=7d, T=5.84, Fit=0.47 | h=40,K=20, CONFIRMED | median=10d, mean=9.6d, n=14, LOW | risk=N, confirmed=N, 5d=21.4%,10d=57.1%,20d=100.0% |
-| M 豆粕 | 2026-06-29, close=2967 | 未确立趋势, T=0.39, Fit=0.01 | h=20,K=10, DIAGNOSTIC_ONLY | NA | risk=N, confirmed=N, NA |
+| M 豆粕 | 2026-06-29, close=2967 | 未确立趋势, T=0.39, Fit=0.01 | h=20,K=10, DIAGNOSTIC_ONLY | 未确立趋势，不计算 | risk=N, confirmed=N；未确立趋势，不适用 |
 | MA 甲醇 | 2026-06-29, close=2460 | 已确立 DOWN, age=5d, T=-6.11, Fit=0.50 | h=40,K=20, CONFIRMED | median=11d, mean=15.9d, n=32, MEDIUM | risk=N, confirmed=N, 5d=37.5%,10d=46.9%,20d=68.8% |
 | SA 纯碱 | 2026-06-29, close=1103 | 已确立 DOWN, age=13d, T=-10.93, Fit=0.87 | h=20,K=10, CANDIDATE | median=12d, mean=14.9d, n=17, LOW | risk=N, confirmed=N, 5d=23.5%,10d=47.1%,20d=82.4% |
 | SP 纸浆 | 2026-06-29, close=4690 | 已确立 DOWN 且有结束风险, age=3d, T=-7.21, Fit=0.87 | h=10,K=20, CANDIDATE | median=4d, mean=6.1d, n=58, HIGH | risk=Y, confirmed=N, 5d=56.9%,10d=82.8%,20d=100.0% |
-| SR 白糖 | 2026-06-29, close=5270 | 未确立趋势, T=-2.33, Fit=0.09 | h=60,K=20, CANDIDATE | NA | risk=N, confirmed=N, NA |
-| V PVC | 2026-06-29, close=4391 | 已确立 DOWN 且有结束风险, age=27d, T=-19.04, Fit=0.95 | h=20,K=20, CANDIDATE | NA | risk=Y, confirmed=N, NA |
+| SR 白糖 | 2026-06-29, close=5270 | 未确立趋势, T=-2.33, Fit=0.09 | h=60,K=20, CANDIDATE | 未确立趋势，不计算 | risk=N, confirmed=N；未确立趋势，不适用 |
+| V PVC | 2026-06-29, close=4391 | 已确立 DOWN 且有结束风险, age=27d, T=-19.04, Fit=0.95 | h=20,K=20, CANDIDATE | 同龄可比完成样本 n=3<5，当前寿命估计不输出 | risk=Y, confirmed=N；DOWN/RISK 历史 5/10/20d 结束概率=13.2%/36.8%/94.3% |
 
 当前趋势的直接结论：
 
 - 已明确确立趋势的合约为 AG、CF、EB、FG、LH、MA、SA、SP、V，共 9 个；M 与 SR 当前未确立趋势。
 - 当前趋势方向以 DOWN 为主：AG、CF、EB、FG、MA、SA、SP、V 为 DOWN，LH 为 UP。
 - 当前没有任何合约被 `TrendEndConfirmed` 标记为已确认结束。
-- EB、SP、V 已进入 `TrendEndRisk`；其中 EB 与 SP 同时有历史同类剩余寿命和结束概率，V 虽有风险标记，但当前表未给出可用剩余寿命估计。
+- M 与 SR 当前未确立趋势，因此剩余寿命和结束概率不适用，不是数据缺失。
+- EB、SP、V 已进入 `TrendEndRisk`；其中 EB 与 SP 同时有当前寿命估计和结束概率，V 的同龄可比完成样本只有 3 个，低于当前寿命估计最少 5 个样本要求，但全历史 DOWN/RISK 状态仍可给出 5/10/20 日结束概率。
 
 ---
 
