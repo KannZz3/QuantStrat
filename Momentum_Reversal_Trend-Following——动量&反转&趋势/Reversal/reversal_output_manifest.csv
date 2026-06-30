@@ -1,0 +1,8 @@
+file,scope,question,description
+reversal_core_current_summary.csv,CURRENT,ALL,当前反转主表：反转存在、持续周期、结束状态、最佳反转模型汇总；duration/remaining-life 单位为 validated-active observations
+reversal_q1_existence_current.csv,CURRENT,Q1,当前是否存在明确反转：方向、来源、模型有效性、validated reversal age obs
+reversal_q2_duration_current.csv,CURRENT,Q2,当前反转还能持续多久：剩余寿命、未来 N 个 validated-active observations 内结束概率、历史同方向 duration 摘要
+reversal_q3_end_current.csv,CURRENT,Q3,当前反转是否结束：信号消失、方向翻转、快速反转吸收；latest_row_has_reversal_end_flag 表示最新行是否有结束标记
+reversal_hist_q1_existence_model.csv,FULL_HISTORY,Q1,全历史反转存在频率、方向分布、最佳反转模型有效性；计数单位为 observations
+reversal_hist_q2_duration_distribution.csv,FULL_HISTORY,Q2,全历史反转 episode 持续时间分布：均值、中位数、分位数、样本数；duration 单位为 validated-active observations
+reversal_hist_q3_end_survival.csv,FULL_HISTORY,Q3,全历史反转结束概率：按方向、来源、horizon_obs 统计未来结束概率
