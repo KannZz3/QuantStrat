@@ -195,24 +195,24 @@ QuantStrat/
 ├── Commodity_Futures_Raw_Data/                        # Commodity futures raw price & feature panel data (27 symbols) / 商品期货原始价格与特征面板数据 (27个品种)
 │   ├── AG.csv, AL.csv, ...
 │   └── futures_panel.csv                              # Commodity futures cross-sectional main panel / 商品期货横截面主面板
+├── Momentum_Reversal_Trend-Following——动量&反转&趋势/ # Module 1: momentum, reversal, trend-following / 模块一：动量、反转与趋势跟踪
+│   ├── Trend/                                         # Trend-following notebook and CSV outputs / 趋势跟踪 notebook 与 CSV 输出
+│   ├── Momentum/                                      # Momentum notebook and CSV outputs / 动量 notebook 与 CSV 输出
+│   ├── Reversal/                                      # Reversal notebook and CSV outputs / 反转 notebook 与 CSV 输出
+│   └── README.md                                      # Module 1 detailed design & CSV findings document / 模块一详细设计与CSV发现文档
 ├── Market_Anomalies——市场异象/                        # Module 2: Technical anomalies, activity decay, post-pub decay / 模块二：技术异象、活跃度衰减与发表后衰减
 │   ├── 02_vol_sorted_technical_anomaly.ipynb          # Vol-sorted cross-sectional technical anomaly backtesting / 波动率排序横截面技术分析异象回测
 │   ├── 03_liquidity_attenuation.ipynb                 # Trading activity attenuation testing on anomalies / 交易活跃度对技术异象的削弱检验
 │   ├── 04_post_selection_decay.ipynb                  # Post-strategy selection OOS and pseudo-live decay tests / 策略选择后的样本外与伪实盘衰减测试
 │   ├── *.csv                                          # CSV files storing strategies and regression outcomes / 策略与回归的运行结果表
-│   └── README.md                                      # Module 1 detailed design & CSV findings document / 模块一详细设计与CSV发现文档
+│   └── README.md                                      # Module 2 detailed design & CSV findings document / 模块二详细设计与CSV发现文档
 ├── Volatility_Time_Series——波动率&时间序列检验/       # Module 3: Volatility modeling & Hong-Lee spectral risk control / 模块三：波动率建模与 Hong-Lee 谱检验风控模块
 │   ├── Traditional_Model_Selection_Sugar.ipynb        # Single contract replication & full pipeline diagnostic (Sugar SR) / 单合约复刻论文及全流程检验 (白糖主力)
 │   ├── hong_lee_20_contracts.ipynb                    # Multi-contract extension execution script (20 symbols) / 多合约拓展运行脚本 (20个商品期货主力)
 │   ├── *.csv                                          # 20-contract volatility models & spectral diagnostic tables / 20合约波动率建模与健康谱检验表
-│   └── README.md                                      # Module 2 detailed design, findings & risk control document / 模块二详细设计、CSV发现与风控逻辑文档
-├── Crypto_Pricing—— 加密货币定价/                     # Module 4: BTC multidimensional pricing & downside valuation / 模块四：BTC多维定价与下沿估值模块
-│   ├── btc_unified_pricing_model/                     # Python core package / Python 核心模型包 (fetchers, validator, pricing)
-│   ├── tests/                                         # Unit testing module / 单元测试模块
-│   └── README.md                                      # Module 3 detailed design document / 模块三详细设计文档
-└── Momentum_Reversal_Trend-Following——动量&反转&趋势/ # Module 1: momentum, reversal, trend-following / 模块一：动量、反转与趋势跟踪
-    ├── Trend/                                         # Trend-following notebook and CSV outputs / 趋势跟踪 notebook 与 CSV 输出
-    ├── Momentum/                                      # Momentum notebook and CSV outputs / 动量 notebook 与 CSV 输出
-    ├── Reversal/                                      # Reversal notebook and CSV outputs / 反转 notebook 与 CSV 输出
-    └── README.md                                      # Module 4 detailed design & CSV findings document / 模块四详细设计与CSV发现文档
+│   └── README.md                                      # Module 3 detailed design, findings & risk control document / 模块三详细设计、CSV发现与风控逻辑文档
+└── Crypto_Pricing—— 加密货币定价/                     # Module 4: BTC multidimensional pricing & downside valuation / 模块四：BTC多维定价与下沿估值模块
+    ├── btc_unified_pricing_model/                     # Python core package / Python 核心模型包 (fetchers, validator, pricing)
+    ├── tests/                                         # Unit testing module / 单元测试模块
+    └── README.md                                      # Module 4 detailed design document / 模块四详细设计文档
 ```
