@@ -130,27 +130,11 @@ Currently, three core research modules and empirical analyses are complete, and 
 
 ## 4. Planned Research Modules and Future Directions / 四、 规划中研究模块与后续方向
 
-The project will further explore the following three quantitative finance topics, progressively completing the replication and extension of relevant academic literature:
+The project will further explore the following two quantitative finance topics, progressively completing the replication and extension of relevant academic literature:
 
-本项目后续将进一步探索以下三个量化金融课题，并逐步完成相关学术文献的复现与拓展检验：
+本项目后续将进一步探索以下两个量化金融课题，并逐步完成相关学术文献的复现与拓展检验：
 
-### 1. Momentum, Reversal, and Trend-Following / 动量 / 反转 / 趋势跟踪
-*   **Research Topics / 研究主题**：
-    Price continuation, mean reversion, trend rule construction, volatility-adaptive timing adjustments, and two-state regime-switching (Regime-Switching) models.
-
-    价格延续、均值反转、趋势规则构建、波动率自适应调整以及两状态机制切换（Regime-Switching）。
-*   **Core Literature / 核心文献**：
-    *   *Ammann, Moellenbeck, and Schmid (2011)* — Feasible Momentum Strategies in the US Stock Market
-    *   *Baltas and Kosowski (2012)* — Improving Time-Series Momentum Strategies: The Role of Trading Signals and Volatility Estimators
-    *   *Caporale and Plastun (2020)* — Momentum Effects in the Cryptocurrency Market After One-Day Abnormal Returns
-    *   *Dobrynskaya (2021)* — Cryptocurrency Momentum and Reversal
-    *   *Dudler, Gmuer, and Malamud (2014)* — Risk Adjusted Time Series Momentum
-    *   *Karassavidis, Kateris, and Ioannidis (2025)* — Quantitative Evaluation of Volatility-Adaptive Trend-Following Models in Cryptocurrency Markets
-    *   *Li et al. (2021)* — MAX Momentum in Cryptocurrency Markets
-    *   *Tayal (2009)* — Regime Switching and Technical Trading with Dynamic Bayesian Networks in High-Frequency Stock Markets
-    *   *Zakamulin and Giner (2022)* — Optimal Trend Following Rules in Two-State Regime-Switching Models
-
-### 2. Machine Learning, AI, and Forecasting Models / 机器学习 / AI / 预测模型
+### 1. Machine Learning, AI, and Forecasting Models / 机器学习 / AI / 预测模型
 *   **Research Topics / 研究主题**：
     High-dimensional asset forecasting, Explainable AI (XAI) in asset allocation, deep reinforcement learning trading systems, and non-linear forecasting model comparisons.
 
@@ -164,7 +148,7 @@ The project will further explore the following three quantitative finance topics
     *   *Shen, Jiang, and Zhang (2012)* — Stock Market Forecasting Using Machine Learning Algorithms
     *   *Tran, Pham-Hi, and Bui (2023)* — Optimizing Automated Trading Systems with Deep Reinforcement Learning
 
-### 3. Market Microstructure and High-Frequency Trading / 市场微观结构 / 高频交易 / 算法交易
+### 2. Market Microstructure and High-Frequency Trading / 市场微观结构 / 高频交易 / 算法交易
 *   **Research Topics / 研究主题**：
     Volatility feedback effects in high-frequency data, dynamic execution of micro-order flows, algorithmic trading optimization under Pro Rata matching mechanisms, and transaction cost minimization control.
 
@@ -194,13 +178,18 @@ QuantStrat/
 │   ├── 04_post_selection_decay.ipynb                  # Post-strategy selection OOS and pseudo-live decay tests / 策略选择后的样本外与伪实盘衰减测试
 │   ├── *.csv                                          # CSV files storing strategies and regression outcomes / 策略与回归的运行结果表
 │   └── README.md                                      # Module 1 detailed design & CSV findings document / 模块一详细设计与CSV发现文档
-└── Volatility_Time_Series——波动率&时间序列检验/       # Module 2: Volatility modeling & Hong-Lee spectral risk control / 模块二：波动率建模与 Hong-Lee 谱检验风控模块
-    ├── Traditional_Model_Selection_Sugar.ipynb        # Single contract replication & full pipeline diagnostic (Sugar SR) / 单合约复刻论文及全流程检验 (白糖主力)
-    ├── hong_lee_20_contracts.ipynb                    # Multi-contract extension execution script (20 symbols) / 多合约拓展运行脚本 (20个商品期货主力)
-    ├── *.csv                                          # 20-contract volatility models & spectral diagnostic tables / 20合约波动率建模与健康谱检验表
-    └── README.md                                      # Module 2 detailed design, findings & risk control document / 模块二详细设计、CSV发现与风控逻辑文档
+├── Volatility_Time_Series——波动率&时间序列检验/       # Module 2: Volatility modeling & Hong-Lee spectral risk control / 模块二：波动率建模与 Hong-Lee 谱检验风控模块
+│   ├── Traditional_Model_Selection_Sugar.ipynb        # Single contract replication & full pipeline diagnostic (Sugar SR) / 单合约复刻论文及全流程检验 (白糖主力)
+│   ├── hong_lee_20_contracts.ipynb                    # Multi-contract extension execution script (20 symbols) / 多合约拓展运行脚本 (20个商品期货主力)
+│   ├── *.csv                                          # 20-contract volatility models & spectral diagnostic tables / 20合约波动率建模与健康谱检验表
+│   └── README.md                                      # Module 2 detailed design, findings & risk control document / 模块二详细设计、CSV发现与风控逻辑文档
 ├── Crypto_Pricing—— 加密货币定价/                     # Module 3: BTC multidimensional pricing & downside valuation / 模块三：BTC多维定价与下沿估值模块
-    ├── btc_unified_pricing_model/                     # Python core package / Python 核心模型包 (fetchers, validator, pricing)
-    ├── tests/                                         # Unit testing module / 单元测试模块
-    └── README.md                                      # Module 3 detailed design document / 模块三详细设计文档
+│   ├── btc_unified_pricing_model/                     # Python core package / Python 核心模型包 (fetchers, validator, pricing)
+│   ├── tests/                                         # Unit testing module / 单元测试模块
+│   └── README.md                                      # Module 3 detailed design document / 模块三详细设计文档
+└── Momentum_Reversal_Trend-Following——动量&反转&趋势/ # Module 4: momentum, reversal, trend-following / 模块四：动量、反转与趋势跟踪
+    ├── Trend/                                         # Trend-following notebook and CSV outputs / 趋势跟踪 notebook 与 CSV 输出
+    ├── Momentum/                                      # Momentum notebook and CSV outputs / 动量 notebook 与 CSV 输出
+    ├── Reversal/                                      # Placeholder for reversal extension / 反转后续扩展目录
+    └── README.md                                      # Module 4 detailed design & CSV findings document / 模块四详细设计与CSV发现文档
 ```
